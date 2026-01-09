@@ -159,3 +159,23 @@ Transformer models can combine and process data from multiple sources. This come
 - Searches for information across databases in multiple modalities (e.g., text and image)
 - Combines results from different sources into a single coherent response
 - Presents the most relevant information from documents and metadata
+
+
+### Day 3
+Transformers are Language Models
+GPT,BERT T5 are all examples of language models- Trained on large amounts of raw text in a self-supervised fashio n
+
+SS learning is a type of training in which the objective is automatically computed from the inputs of the model. 
+Humans are not needed to label data
+
+The model develops a statistical understanding of the language it has been trained on. (less useful for specific practical tasks)
+
+Due to this the pretrained model then goes through transferlearning or finetuning. During this process, the model is fine tuned in a supervised way i.e human-annotated labels on a given task. E.g predicting the next word in a sentence having read the n previous words
+Casual language modeling- coz the output depends on the past and present inputs but not the future ones. 
+
+Masked language modelling- the model predicts a masked word in the sentence 
+
+
+### Transformers are big models
+
+General strategy to achieve better performance is by increasing te model's size as well as the amount of data they are pretrained on. 
