@@ -179,3 +179,256 @@ Masked language modelling- the model predicts a masked word in the sentence
 ### Transformers are big models
 
 General strategy to achieve better performance is by increasing te model's size as well as the amount of data they are pretrained on. 
+
+
+## Day 4 
+Training a model, especially a large one, requires a large amount of ata. This becomes costly in time and resources. This can even translates to environmental impact. 
+
+
+When it comes to Environmental impact
+1. Type of Energy
+2. Training Time
+3. Hardware you use 
+
+Other elements to consider
+1. Fine tuning
+2. Using pretrained models when they are available
+3. Starting with smaller experiments and debugging
+4. Random search
+5. Doing a literature review 
+
+Sharing language models is paramount: sharing the trained weights and buidling on top of already trained weights reduces the overall compute cost and carbon footprint of the community. 
+
+Tools to evaluate Carbon footprintof your models' training: CodeCarbon and ML CO2 Impact
+
+
+### Transfer Learning
+ pretraining is the act of training a model from scratch: the weights are randomly initialized, and the training starts without any prior knowledge. 
+  It is done on very large amounts of data. Requires large corpus of data, and training can take up to several weeks. 
+
+  Fine tuning on the otherhand is the training done after a model has been pretrained. Here you first acquire a pretrained language model, then perform additional training with a dataset specific to your task.
+
+  Fine tuning has lower time, data, financial, and environmental costs. Its also quicker and easier to iterate over different fine-tuning schemes, as the training is less constraining than a full pretraining. 
+
+
+  ### General Transformer Architecture
+  Model is composed of two blocks the encoder and decoder
+  The encoder receives an input and builds a representation of it. The model is optimized to acquire understanding from the input
+  Decoder: it uses encoder's representation(features) along with other inputs to generate a target sequence. Model is optimized for generating outputs. 
+
+  Each of these can be used independently depending on the task.
+  1. Encoder-only models: Good for tasks that require understanding of the input such as sentence classification
+  2. Decoder-only models: text generation
+  3. Encoder-decoder models: good for generative tasks that require an input such as translation or summarization
+
+
+## Attention layers
+special layers used to build transformer models.
+This layer will tell the model to pay specific attention to certain words in the sentence you passed it.
+
+## The Original Architecture
+The TF architecture was originally designed for translation. 
+During training the encoder receives inputs(sentences) in a certain language, while the decoder receives the same sentences in the desired target language.
+
+### How Encoder and Decoder Attention Differs
+
+**Encoder Attention (Sees Everything):**
+- The encoder can look at ALL words in a sentence at once—both before AND after any given word
+- Why? Because to translate "I love cats" → "J'aime les chats", understanding the full sentence helps translate each word correctly
+- Think of it like reading the whole sentence first before trying to understand any part
+
+**Decoder Attention (Sees Only the Past):**
+- The decoder works step-by-step, like writing one word at a time
+- It can only see words it has ALREADY generated, not future words
+- Example: When predicting the 4th word, it can only look at words 1, 2, and 3
+
+**Why This Restriction on the Decoder?**
+Imagine you're translating and trying to predict word #2. If you could already see word #2, that's cheating! The task would be too easy—just copy the answer.
+
+**The Training Trick:**
+- During training, we actually give the decoder the WHOLE target sentence at once (for speed)
+- BUT we use a "mask" to hide future words, so it still can't peek ahead
+- This way, the model learns to predict without cheating, but training goes much faster than generating word-by-word
+
+**Simple Analogy:**
+- **Encoder** = Reading a full question before answering
+- **Decoder** = Writing your answer one word at a time, only seeing what you've written so far
+
+## Architectures Vs Checkpoints
+
+Architecture: skeleton of the model- definition of each layer and each operation that happens within the model
+
+Checkpoints: weights that will be loaded in a given architecture
+
+Model : umbrella term that isn't as precise as architecture or checkpoint but it can mean both. 
+
+
+---
+
+# How Transformers Solve Tasks
+
+Different transformer models are designed for different tasks. Here's a quick overview:
+
+| Model | Type | Best For |
+|-------|------|----------|
+| BERT | Encoder-only | Text classification, NER, Q&A |
+| GPT-2 | Decoder-only | Text generation |
+| BART, T5 | Encoder-Decoder | Summarization, Translation |
+| ViT | Vision Transformer | Image classification |
+| Whisper | Encoder-Decoder | Speech recognition |
+| DETR | Vision Transformer | Object detection |
+
+> **Prerequisite:** Understanding encoders, decoders, and attention (covered above) will help you grasp how these models work!
+
+---
+
+## Transformer Models for Language
+
+Language models learn statistical patterns between words/tokens in text. They're pretrained on massive text data, then fine-tuned for specific tasks.
+
+### Two Main Training Approaches
+
+| Approach | Used By | How It Works |
+|----------|---------|--------------|
+| **Masked Language Modeling (MLM)** | BERT (encoder) | Randomly hide words, predict them using context from BOTH sides |
+| **Causal Language Modeling (CLM)** | GPT (decoder) | Predict the next word using only PREVIOUS words |
+
+### Three Types of Language Models
+
+1. **Encoder-only (BERT):** Sees context from both directions → great for *understanding* text (classification, Q&A)
+2. **Decoder-only (GPT, Llama):** Only sees previous words → great for *generating* text
+3. **Encoder-Decoder (T5, BART):** Encoder understands input, decoder generates output → great for *transforming* text (translation, summarization)
+
+---
+
+## Text Generation (GPT-2)
+
+GPT-2 is a **decoder-only** model. Here's how it generates text:
+
+**Step-by-step process:**
+1. **Tokenize** the input using Byte Pair Encoding (BPE)
+2. **Add position info** so the model knows word order
+3. **Pass through decoder blocks** with masked self-attention
+4. **Predict the next word** using a language modeling head
+
+**Key Point - Masked Self-Attention:**
+- GPT-2 can ONLY look at words to the LEFT (previous words)
+- Future words have their attention scores set to 0
+- This is different from BERT's [MASK] token—it's hiding future positions, not random words
+
+**Training objective:** Predict the next word in a sequence (causal language modeling)
+
+---
+
+## Text Classification (BERT)
+
+BERT is an **encoder-only** model that sees words from BOTH directions.
+
+**How BERT processes text:**
+1. **Tokenize** using WordPiece
+2. Add special tokens: `[CLS]` at the start, `[SEP]` between sentences
+3. Add **segment embeddings** to distinguish sentence pairs
+4. Pass through encoder layers
+5. Use the `[CLS]` token output for classification
+
+**BERT's Two Pretraining Tasks:**
+1. **Masked Language Modeling:** Hide ~15% of words, predict them
+2. **Next Sentence Prediction:** Given two sentences, predict if B follows A
+
+**For classification:** Add a simple classification head on top that converts the `[CLS]` output into class probabilities.
+
+---
+
+## Token Classification (BERT for NER)
+
+Same as text classification, but instead of using just `[CLS]`, we use the output of EVERY token to classify each word (e.g., is this word a Person? Location? Organization?).
+
+---
+
+## Question Answering (BERT)
+
+For Q&A, BERT finds the answer WITHIN the given text (extractive, not generative).
+
+**How it works:**
+- Add a span classification head
+- Predict TWO positions: where the answer STARTS and where it ENDS
+- Extract that text span as the answer
+
+> 💡 **Notice:** Once BERT is pretrained, you just swap the "head" on top for different tasks!
+
+---
+
+## Summarization (BART)
+
+BART is an **encoder-decoder** model—perfect for transforming long text into short summaries.
+
+**How BART works:**
+1. **Encoder** (like BERT) processes the input text
+2. **Pretraining trick:** Corrupt the input (e.g., replace spans with `[MASK]`), then train the decoder to reconstruct it
+3. **Decoder** predicts the original/target text token by token
+
+**Text Infilling:** Replace multiple words with a SINGLE `[MASK]` → model must learn how many words are missing!
+
+---
+
+## Translation (BART/T5)
+
+Translation = Sequence-to-sequence task → use encoder-decoder models.
+
+**BART's Translation Approach:**
+- Add a NEW randomly initialized encoder for the source language
+- This encoder's output feeds into the pretrained BART encoder
+- The decoder generates the target language
+
+**mBART:** Multilingual version trained on many languages for better translation.
+
+---
+
+## Beyond Text: Other Modalities
+
+Transformers aren't just for text! They work on:
+-  **Audio/Speech** (Whisper)
+-  **Images** (ViT, ConvNeXT)
+-  **Video**
+
+---
+
+## Speech Recognition (Whisper)
+
+Whisper is an **encoder-decoder** model trained on 680,000 hours of audio!
+
+**How it works:**
+1. Convert audio → **log-Mel spectrogram** (visual representation of sound)
+2. **Encoder** processes the spectrogram
+3. **Decoder** generates text tokens one by one
+
+**Why Whisper is special:**
+- Trained on MASSIVE diverse data from the internet
+- Works "zero-shot" on many languages without fine-tuning
+- Uses special tokens to switch between tasks (transcription, translation, language ID)
+
+---
+
+## Image Classification (ViT)
+
+**Vision Transformer (ViT)** treats images like sentences!
+
+**The key insight:** Split image into patches, treat each patch like a word token.
+
+**How ViT processes images:**
+1. **Split** image into 16x16 pixel patches (224x224 image → 196 patches)
+2. **Flatten** each patch into a vector (patch embedding)
+3. Add a learnable `[CLS]` token at the start (just like BERT!)
+4. Add **position embeddings** (model doesn't know patch order otherwise)
+5. Pass through Transformer encoder
+6. Use `[CLS]` output for classification
+
+**The parallel with BERT:**
+| BERT | ViT |
+|------|-----|
+| Words → Tokens | Image Patches → Patch Embeddings |
+| [CLS] for classification | [CLS] for classification |
+| Position embeddings | Position embeddings |
+
+> Transformers can process ANY sequence—whether it's words, image patches, or audio frames!
+
