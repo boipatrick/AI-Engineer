@@ -432,3 +432,80 @@ Whisper is an **encoder-decoder** model trained on 680,000 hours of audio!
 
 > Transformers can process ANY sequence—whether it's words, image patches, or audio frames!
 
+
+## How transformers Solve tasks
+Here we'll look at the three main architectural variants of Transformer models and undersand when to use each.
+ 
+
+ ### Encoder Models(BERT, DistilBERT,ModernBERT)
+ only use the encoder of a tf model
+ at each stage the attention layer can access all the words in the initial sentence.
+ often characterized as having bi-directional attention and are often called aut-encoding moodels.
+ pretraining contains deceit such as masking words and tasking the model with finding or reconstructing the initial sentence.
+
+ Encoder models are suited for sentence classification, named entity recognition and extractive question answering(these are all tasks that require an understanding of the full sentence)
+
+### Decoder Models (GPT2)
+little less of performance
+self-attention-masked self attention
+Have access to one context either right or left
+
+Used in wide variety of tasks especially text generation
+Having left context they become good at text generation
+
+
+Examples Huggin Face SmolLM series, deepseek's v3 and google's Gemma series.
+
+### Modern Large Lnuae Models(LLMs)
+
+Most llms use the decoder-only architecture.
+They are typically trained in two phases
+1. Pretraining: the model learns to predict the next token on vast amounts of text data
+
+2. Instruction tuning: the model is fine-tuned to follow instructions and generate helpful responses. 
+
+This approach has led to models that can understand and generate human-like text across a wide rang of topics and tasks.
+
+### Key capabilities of modern LLMs
+1. Text generation
+2.  Summarization
+3. Translation
+4. Question answering
+5. Code generation
+6. Reasoning
+7. Few-shot learning- classifying text after seeing just 2-3 examples
+
+
+# Sequence to Sequence models (T5)(BART)
+Use both parts of the tf architecture
+
+at each stage, the attention layers of the encoder can access all the words in the initial sentence, whereas the attention layers of the decoder can only access the words positioned before a given word, 
+
+Best suited for tasks revolving around generating new sentences depending on a given input, such as summarization, translation or generative question answering. 
+
+Sequence to sequence models excel at tasks that require transforming one form of text into another while preserving the meaning
+E.g Machine translation, Text Summarization, Data to text generation, grammar correction,Quenstion answering(based on text)
+
+Representatives include BART, mBART, Marian and T5.
+
+
+## Choosing the right architecture
+Text classification (sentiment, topic)	Encoder	BERT, RoBERTa.
+Text generation (creative writing)	Decoder	GPT, LLaMA.
+Translation	Encoder-Decoder	T5, BART.
+Summarization	Encoder-Decoder	BART, T5.
+Named entity recognition	Encoder	BERT, RoBERTa.
+Question answering (extractive)	Encoder	BERT, RoBERTa.
+Question answering (generative)	Encoder-Decoder or Decoder	T5, GPT.
+Conversational AI	Decoder	GPT, LLaMA.
+
+When in doubt ask yourself:
+1. what kind of understanding does my task need(Bidirectional or unidirectional)
+2. Are you generating new text or analyzing existing text
+3. Do you need to transform one sequence into another. 
+
+## The Evolution of LLMs
+Attention Mechanisms
+LSH attention
+Local attention
+Axial positional encodings
