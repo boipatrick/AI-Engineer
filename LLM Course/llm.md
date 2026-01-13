@@ -509,3 +509,122 @@ Attention Mechanisms
 LSH attention
 Local attention
 Axial positional encodings
+
+## Day 6
+### Inference with LLMs
+Inference is the process of using a trained LLM to generate human-like text from a given input prompt.
+Models predict and generate the next token in a sequence, one word at a time(Sequential Generation)
+
+LLMs leverage probabilities from billions of parameters to generate coherent and contextually relevant text.
+
+The attention mechanism is what gives LLMs their ability to understand context and generate coherent responses. When predicting the next word, not every word in a sentence carries equal weight. 
+
+The attention mechanism is the key to LLMs being able to generate text that is both coherent and context-aware. It sets modern LLMs apart from previous generations of language models
+
+## Context Length and Attention Span 
+CL referes to the max no. of token(words or parts of words) that LLM can process at once. Think of it as the size f the models' working memory.
+
+Limitiations
+1. Model's architecture and size
+2. Available computational resources
+3. The complexity of the input and desired output. 
+
+## The Two-Phase Inference Process
+phase 1: Prefill
+Phase 2: decode
+
+### Prefill Phase
+where all the initial ingredients are processed and made ready
+It involves three key steps:
+1. Tokenization: converting the input text into tokens
+2. Embedding Conversion: Trransforming these tokens into numericcal representations that capture their meaning
+3. Initial Processing: Running these embeddings through the model's neural networks to creading of the context. 
+
+This phase is computationally intensive think of it as reading and understanding an entire paragraph before starting to write a response. 
+
+## The Decode Phase
+where the actual text generation takes place
+the model generates one token at a time in what we call an autoreressive process(where each token depends on all previous tokens)
+
+It involves several key steps  that happen for each new token
+1. Attention Computation: Looking back at all previous tokens to understand the context
+2. Pronbability Calculation: Determining the likelihood of each possible next token.
+3. Token Selection: Choosing the next token based on these probabilities.
+4. Continuation Check: Deciding whether to continue or stop generation\
+
+PHASE is memory-intensive because the model needs to keep track of all previously generated tokens and their relationships. 
+
+### Sampling Strategies
+
+
+## Understanding Token Selection: From Probabilities to Token Choices
+When the model needs to choose the next token, it starts with raw probabilities (called logits) for every word in its vocabulary. But how do we turn these probabilities into actual choices? Let’s break down the process:
+
+1. Raw Logits: Think of these as the model’s initial gut feelings about each possible next word
+2. Temperature Control: Like a creativity dial - higher settings (>1.0) make choices more random and creative, lower settings (<1.0) make them more focused and deterministic
+3. Top-p (Nucleus) Sampling: Instead of considering all possible words, we only look at the most likely ones that add up to our chosen probability threshold (e.g., top 90%)
+4. Top-k Filtering: An alternative approach where we only consider the k most likely next words
+
+## Managing Repetition :Keeping Output Fresh
+To avoid LLMS from repeting themselves we use two types  of penalties:
+1. Presence Penalty: AA fixed penalty applied to any token that has appeared before, regardless of how often. This helps prevent the model from reusing the same words.
+
+Frequency Penalty: A scaling penalty that increases based on how often a token has been used. The more a word appears, the less likely it is to be chosen again.
+
+## Controlling Generation Length: Setting Boundaries
+We need ways to control how much text our LLM generates.We can control generation length in several ways:
+1. Token limits: setting minimum and max tokens
+2. Stop Sequence: Defining specific patterns that signal the end of generation
+3. End-of-sequence Detection: Letting the model naturally conclude its response.
+
+## Beam search: Looking ahead for Better Coherence
+beam searches takes a more holistic approach. Instead of committing to a single choice at each step, it explores mutliple possible paths simultaneously-like a chess player thinking several moves ahead. 
+
+Here’s how it works:
+
+1. At each step, maintain multiple candidate sequences (typically 5-10)
+2. For each candidate, compute probabilities for the next token
+3. Keep only the most promising combinations of sequences and next tokens
+4. Continue this process until reaching the desired length or stop condition
+5. Select the sequence with the highest overall probability
+
+This approach often produces more coherent and grammatically correct text, though it requires more computational resources than simpler methods.
+
+### Practical Challenges and Optimization
+When working with LLMs four critical metrics will shape your implementation decisions:
+1. Time to First Token(TTFT): How quickly can you get the first response?
+2. Time Per Output Token(TPOT): How fast can you generate subsequent tokens
+3. Throughput: How many requests can you handle simultaneously? This affects scaling and cost efficiency.
+4. vram Usage: How much GPU memory do you need? 
+
+## The Context Length Challenge
+The biggest challenges in inference  is managing context lengths effectively. Longer contexts provide more information but come with substantial costs:
+1. Memory Usage: Grows quadratically with context lenght
+2. Processing speed: Decreases linearly with longer contexts
+3. Resource Allocation: Requires careful balancing of VRAM usage.
+
+## The KV Cache Optimization
+To address these challenges, one of the most powerful optimizations is KV (Key-Value) caching. This technique significantly improves inference speed by storing and reusing intermediate calculations. This optimization:
+
+1. Reduces repeated calculations
+2. Improves generation speed
+3. Makes long-context generation practical
+4. The trade-off is additional memory usage, but the performance benefits usually far outweigh this cost.
+
+## Conclusion
+Understanding LLM inference is crucial for effectively deploying and optimizing these powerful models. We’ve covered the key components:
+
+The fundamental role of attention and context
+The two-phase inference process
+Various sampling strategies for controlling generation
+Practical challenges and optimizations
+By mastering these concepts, you’ll be better equipped to build applications that leverage LLMs effectively and efficiently.
+
+Remember that the field of LLM inference is rapidly evolving, with new techniques and optimizations emerging regularly. Stay curious and keep experimenting with different approaches to find what works best for your specific use cases.
+
+## Bias and Limitations
+Whether you want to use a pretrained model or a ine-tuuned one it is important to know that all these have limitations. 
+
+The biggest of these is that , to enable pretraining on large amounts of data, researchers often scrape all the content they can find, taking the best as well as the worst of what is available on the internet.
+
+When you use these tools, you therefore need to keep in the back of your mind that the original model you are using could very easily generate sexist, racist, or homophobic content. Fine-tuning the model on your data won’t make this intrinsic bias disappear.
