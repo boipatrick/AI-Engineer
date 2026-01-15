@@ -205,3 +205,97 @@ print(encoded_input)
 ## Adding Special Tokens
 Important to BERT and derived models. 
 These tokens are added to better represent the sentence boundaries, such as the beginning of a sentence ([CLS]) or separator between sentences ([SEP]).
+
+Day 8
+##  Tokenizers
+Tokenizers are one of the core components of the NLP pipeline. They translate text into data that can be processed by the model. 
+They are so many ways in which we can do this the goal is to find the most meaningful representation- that is, the one that makes the most sense to the model. 
+
+## Tokenization algorithms
+### Word-Based
+Generally very easy to set up and use with only a few rules, and it often yields decent results.
+
+One way to reduce the amount of unknown tokens is to go one level deeper, using a character-based tokenizer.
+
+### Character-based
+Split text into characters rather than words. Benefits include:
+1. The vocabulary is muvh smaller
+2. There are much fewer out-of-vocabulary(unknown) tokens, since every word cabn be built from characters
+
+each character doesn’t mean a lot on its own, whereas that is the case with words.
+
+This differs according to the language
+
+We'll end up with a very large amount of tokens to be processed by our model: whereas a word would only be a single token with a word-based tokenizer, it can easily turn into 10 or more tokens when converted into characters.
+
+### Subword tokenization
+
+![Subword Tokenization](tokenizers.PNG)
+
+Subword tokenization algorithms rely on the principle that frequently used words should not be split into smaller subwords, but rare words should be decomposed into meaningful subwords.
+
+### And more!
+There are many more techniques out there. To name a few:
+Byte-level BPE, as used in GPT-2
+WordPiece, as used in BERT
+SentencePiece or Unigram, as used in several multilingual models
+
+### Loading and Saving
+Its based on two models: from_pretrained() and save_pretrained(). These methods will load or save the algorithm used by the tokenizer(a bit like the architecture of the model) as well as its vocabulary.
+
+### Encoding
+Translating text to numbers is known as encoding. Its done in a two step process: the tokenization, followed by the conversion to input IDs
+
+As we’ve seen, the first step is to split the text into words (or parts of words, punctuation symbols, etc.), usually called tokens. 
+There are multiple rules that can govern that process, which is why we need to instantiate the tokenizer using the name of the model, to make sure we use the same rules that were used when the model was pretrained.
+
+The second step is to convert those tokens into numbers, so we can build a tenso out of them and feed them to the model. To do this, the tokenizer has a vocabulary, which is the part we download when we instantiate it with the from_pretrained()method.
+
+### Tokenizers
+The tokenization process is done by the tokenize() method of the tokenizer:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+sequence = "Using a Transformer network is simple"
+tokens = tokenizer.tokenize(sequence)
+
+print(tokens)
+```
+
+the output is a list of strings.
+This tokenizer is a subword tokenizer from the results, it splits the words until it obtains tokens that can be represented by its vocabulary.
+
+### From tokens to input IDs
+The conversion to input IDs is handled by the convert_tokens_to_ids() tokenizer method:
+
+
+```python
+ids = tokenizer.convert_tokens_to_ids(tokens)
+
+print(ids)
+```
+
+These outputs, once converted to the appropriate framework tensor, can then be used as inputs to a model as seen earlier in this chapter.
+
+### Decoding
+This is the inverse: from vocabulary indices, we want to get a string. This can be done with the decode()method
+
+```python
+decoded_string = tokenizer.decode([7993, 170, 11303, 1200, 2443, 1110, 3014])
+print(decoded_string)
+```
+This method not only converts the indices back to tokens, but also groups together the tokens that were part of the same words to produce a readable sentence.
+
+
+### Handlin multiple sequences
+
+In the previous section, we explored the simplest of use cases: doing inference on a single sequence of a small length.
+However, some questions emerge already:
+
+1. How do we handle multiple sequences?
+2. How do we handle multiple sequences of different lengths?
+3. Are vocabulary indices the only inputs that allow a model to work well?
+4. Is there such a thing as too long a sequence?
