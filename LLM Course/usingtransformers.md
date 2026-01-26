@@ -1,83 +1,79 @@
 ## Intro
-Transormers library was created with the goal to provide a single API through which any TF moel can be loaded, trained and saved. 
-The library's main features include:
+Transformers library was created to provide a unified API for loading, training, and saving any Transformer model. Its main features are:
+The 🤗 Transformers library is a popular open-source toolkit for working with state-of-the-art natural language processing models. It supports a wide range of tasks, including text classification, question answering, and text generation.
+
 1. Ease of use
 2. Flexibility
 3. Simplicity
 
 ## Behind the Pipeline
-What happens inside the pipeline() Function
 
 Tokenization
 Model
 Postprocessing- convert logits into probabilities
 
+- **Tokenization**: Converts text inputs into tokens (numbers) the model can process.
+- **Model**: Runs the tokens through the model to get predictions.
+- **Postprocessing**: Converts raw model outputs (logits) into probabilities.
 
 ```python
 from transformers import pipeline
 
 classifier = pipeline("sentiment-analysis")
-classifier(
-    [
-        "I've been waiting for a HuggingFace course my whole life.",
-        "I hate this so much!",
-    ]
-)
+classifier([
+    "I've been waiting for a HuggingFace course my whole life.",
+    "I hate this so much!",
+])
 ```
 
 ## Tokenization
-first step is to convert the text inputs into numbers that the model can make sense of. To do this we use a tokenizer, which will be responsible for:
-splitting the input into words, subwords, or symbols that are called tokens
-mapping each token to an integer
-Adding additional inputs that may be useful to the model
 
-All this preprocessing needs to be done in exactly the same way as when the model was pretrained, so we first need to download that information from the Model Hub. To do this, we use the AutoTokenizer class and its from_pretrained() method. Using the checkpoint name of our model, it will automatically fetch the data associated with the model’s tokenizer and cache it (so it’s only downloaded the first time you run the code below).
+Tokenization is the process of converting text into numbers. The tokenizer:
 
-Since the default checkpoint of the sentiment-analysis pipeline is distilbert-base-uncased-finetuned-sst-2-english (you can see its model card here), we run the following:
+- Splits input into tokens (words, subwords, symbols)
+- Maps each token to an integer
+- Adds additional inputs required by the model
 
+Preprocessing must match the model's pretraining. Use `AutoTokenizer.from_pretrained()` to fetch the correct tokenizer:
 
 ```python
 from transformers import AutoTokenizer
 
 checkpoint = "distilbert-base-uncased-finetuned-sst-2-english"
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-
 ```
 
-Once we have the tokenizer, we can directly pass our sentence to it and we'll get back a dictionary that's ready to feed to our model.
-Transformer models only accept tensors as input. 
+Transformer models accept tensors as input.
 
-## Going through the model
-we download our pretrained model same way we did with our tokenizer.
-For each model input we'll retrieve a high-dimensional vector representing the contextual understanding of that input by the transformer model. 
+## Going Through the Model
 
-## A high-dimensional vector
-vector output by the transformer module is usually large. It has 3 dimensions
+Download the pretrained model similarly to the tokenizer. Each input yields a high-dimensional vector representing its contextual meaning.
 
-Batch size no of sequences pocessed at a time
-sequence lenth- length of the numerical representation of the sequence
-Hidden size: the vector dimension of each model input
+## High-Dimensional Vectors
 
-You can access the elements by attributes or by key or even by index
+Transformer outputs are typically 3D tensors:
 
-## Model Heads: Making sense out of numbers
-The model heads take the high-dimensional vector of hidden states as input and project them onto a different dimension. They are usually composed of one or a few linear layers:
-The embeddings layer converts each input ID in the tokenized input into a vector that represents the associated token. 
-Subsequent layers manipulate those vectors using the attention mechanism to produce the final representation of the sentences
+- Batch size: Number of sequences processed at once
+- Sequence length: Length of each input sequence
+- Hidden size: Dimensionality of each input's vector
 
-There are many different architectures available in 🤗 Transformers, with each one designed around tackling a specific task. Here is a non-exhaustive list:
+## Model Heads
 
-*Model (retrieve the hidden states)
-*ForCausalLM
-*ForMaskedLM
-*ForMultipleChoice
-*ForQuestionAnswering
-*ForSequenceClassification
-*ForTokenClassification
-and others 🤗
+Model heads project hidden states onto task-specific dimensions, often using linear layers. The embeddings layer converts input IDs to vectors, and attention layers refine these representations.
 
-## Postprocessing the output
-logits, the raw, unnormalized scores outputted by the last layer of the model. To be converted to probabilities they need to go via Softmax layer
+Common architectures include:
+
+- Model (hidden states)
+- ForCausalLM
+- ForMaskedLM
+- ForMultipleChoice
+- ForQuestionAnswering
+- ForSequenceClassification
+- ForTokenClassification
+
+## Postprocessing
+
+Model outputs (logits) are raw scores. Use a Softmax layer to convert logits to probabilities.
 
 ## Models
 Automodel class is quite handy when you want to instantiate any model from a check point
@@ -299,3 +295,109 @@ However, some questions emerge already:
 2. How do we handle multiple sequences of different lengths?
 3. Are vocabulary indices the only inputs that allow a model to work well?
 4. Is there such a thing as too long a sequence?
+
+The Transformer API solves this
+Batching is the act of sending multiple sentences through the model, all at once. If you only have one sentence, you can just build a batch with a sinle sequence
+
+It allows the model to work when you feed it multiple sentences.When submitting two or some sentences of different lengths we usually pad the inputs. 
+
+Padding enables us to make our tensors have a rectangular shape. 
+Padding makes sure all our sentences have the same length by adding a special word called the padding token to the sentences with fewer values
+
+The attention mask is used to tell thw attention layers to ignore the padding tokens. 
+
+## Attention Masks
+Attention masks are tensors with the exact same shape as the input IDs tensor, filled with 0s and 1s:1s indicate ther tokens suld not attended
+
+
+## longer Sequences
+With TF Models there is a limit to the lengths of the sequences we can pass the models. Most models handle sequences of up to 512 or 1024 tokens, and will crash when asked to process longer sequences.
+
+There are two solutions to this problem:
+1. Use a model with a longer supported sequence length
+2. Truncate your sequences(Otherwise, we recommend you truncate your sequences by specifying the max_sequence_length parameter:)
+
+## Putting It All Together
+
+The Transformer API handles all steps. Tokenize and prepare inputs:
+
+```python
+from transformers import AutoTokenizer
+
+checkpoint = "distilbert-base-uncased-finetuned-sst-2-english"
+tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+sequence = "I've been waiting for a HuggingFace course my whole life."
+model_inputs = tokenizer(sequence)
+```
+
+## From tokenizer to model
+Now that we’ve seen all the individual steps the tokenizer object uses when applied on texts, let’s see one final time how it can handle multiple sequences (padding!), very long sequences (truncation!), and multiple types of tensors with its main API:
+
+```python
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+checkpoint = "distilbert-base-uncased-finetuned-sst-2-english"
+tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+model = AutoModelForSequenceClassification.from_pretrained(checkpoint)
+sequences = ["I've been waiting for a HuggingFace course my whole life.", "So have I!"]
+
+tokens = tokenizer(sequences, padding=True, truncation=True, return_tensors="pt")
+output = model(**tokens)
+```
+
+### Recap
+
+The basic building blocks of a Transformer model
+Learned what makes up a tokenization pipeline
+Saw how to use a Transformer model in practice
+Learned how to leverage a tokenizer to convert text to tensors that are understandable by the model
+Setup a tokenizer and a model together to get from text to predictions
+Learned the limitations of input IDs and attention masks
+Played around with versatile and configurable tokenizer models
+
+# Optimized Inference Deployment
+Here we will look at advanced frameworks for optimizing deployments: Text Generation Inference(TGI), vLLM, and llama.cp. 
+
+These applications are used in production environments to serve LLMs to users. 
+
+## Framework Selection Guide
+TGI, vLLM and llama.cpp serve similar purposes but have distinct characteristics depending on the use case. Next we will look at the key differeces between them, focusing on performance and integration.
+
+### Memory Management and Performance
+TGI- designed to be stable and predictable in production, using  fixed sequence lengths to keep memory usage consistent. 
+It manages memory using Flash Attention 2 and continous batching techniques.
+This means it can process attention 2 and calculations very efficiently and keep the GPU busy by constantly feeding it work.
+The system can move parts of the model between CPU and GPU when needed, which helps handle larger models.
+
+vLLM takes a different approach by using PagedAttention.
+vLLM splits the model's memory into smaller blocks.
+ 
+With this it can handle different-sized requests more flexibly and doesn't waste memory space.
+
+Its particularly good at sharing memory betwen different requests and reduces memory fragmentation, which makes the whole system more efficient.
+
+
+llama.cpp is a highly optimized C/C++ implementation originally designed for LLaMa models on consumer hardware. 
+
+It focuses on CPU efficiency with optional GPU acceleration and is ideal for resource-constrained environments.
+
+It uses quantization techniwues to reduce  model size and memory requirements while maintaining good performance.
+
+It implements optimized kernels for various CPU architectures and supports basic KV cache management for efficient token generation.
+
+## Deployment and Integration
+TGI excels in enterprise-level deployment with its production-ready features.
+Comes with built-in Kubernetes support and includes everything you need for running in production, like monitoring via Prometheus, automatic scaling, and comprehensive safety features.
+
+System also includes enterprise-grade logging and various protective measures like content filtering and rate limiting tokeep your deployment secure and stable. 
+
+vLLM takes a more flexible, developer-friendly approach to deployment
+built with python at its core and can easily replace OpenAI's API in your existing apps.
+
+The framework focuses on delivering raw perfomace well with Ray for managing clusters, making it a great choice when you need high performance and adaptibility.
+
+llama.cpp prioritizes simplicity and portability.
+Its server implementation is lightweight and can run on a wide range of hardware, from powerful srvers to consumer laptops and even some high end mobile devices
+With minimal dependancies and C/C++ core, it's easy to deploy in environments where installing python frameworks would be challenging. 
+The server provides an OpenAI-compatible API while maintaining a much smaller resource footprint than other solutions.
