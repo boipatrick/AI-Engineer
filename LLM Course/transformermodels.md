@@ -612,7 +612,7 @@ To address these challenges, one of the most powerful optimizations is KV (Key-V
 4. The trade-off is additional memory usage, but the performance benefits usually far outweigh this cost.
 
 ## Conclusion
-Understanding LLM inference is crucial for effectively deploying and optimizing these powerful models. We’ve covered the key components:
+Understanding LLM inference is crucial for effectively deploying and optimizing these powerful models. We’ve covered the key components
 
 The fundamental role of attention and context
 The two-phase inference process
